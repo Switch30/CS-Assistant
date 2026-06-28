@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Kalkulator Harga CS</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fdf2f8, #eff6ff);
+      color: #1f2937;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      color: #111827;
+      line-height: 1.25;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      width: 100%;
+    }
+
+    label.group-label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 13px;
+      font-size: 16px;
+      outline: none;
+      background: #ffffff;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: #ec4899;
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.16);
+    }
+
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .radio-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 13px;
+      cursor: pointer;
+      background: #ffffff;
+      font-weight: 700;
+      transition: 0.2s ease;
+      user-select: none;
+    }
+
+    .radio-card:hover {
+      border-color: #ec4899;
+      background: #fdf2f8;
+    }
+
+    .radio-card input {
+      width: 18px;
+      height: 18px;
+      accent-color: #ec4899;
+      cursor: pointer;
+    }
+
+    .radio-card span {
+      font-size: 15px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      border: none;
+      border-radius: 13px;
+      background: #ec4899;
+      color: white;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 15px;
+      transition: 0.2s ease;
+    }
+
+    .submit-btn:hover {
+      background: #db2777;
+    }
+
+    .result-wrapper {
+      display: none;
+      margin-top: 24px;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .result-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+      background: #ffffff;
+    }
+
+    .editable-info {
+      margin: -4px 0 10px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    textarea {
+      width: 100%;
+      resize: vertical;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      outline: none;
+    }
+
+    #detailText {
+      min-height: 560px;
+      background: #f9fafb;
+      color: #374151;
+    }
+
+    #templateText {
+      min-height: 320px;
+      background: #ffffff;
+      color: #111827;
+      font-size: 15px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 14px;
+      transition: 0.2s ease;
+      color: #ffffff;
+      background: #111827;
+    }
+
+    .copy-btn:hover {
+      background: #374151;
+    }
+
+    .copy-detail-btn {
+      background: #2563eb;
+    }
+
+    .copy-detail-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .reset-btn {
+      background: #6b7280;
+    }
+
+    .reset-btn:hover {
+      background: #4b5563;
+    }
+
+    .success {
+      display: none;
+      margin-top: 10px;
+      color: #16a34a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .note {
+      margin: 14px 0 0;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .summary-box {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #fdf2f8;
+      border: 1px solid #fbcfe8;
+      color: #831843;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media (min-width: 640px) {
+      body {
+        padding: 28px;
+      }
+
+      .container {
+        padding: 30px;
+      }
+
+      .radio-group {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .form-group.full {
+        grid-column: 1 / -1;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 960px) {
+      .result-wrapper {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      h2 {
+        font-size: 17px;
+      }
+
+      textarea {
+        font-size: 13px;
+        padding: 13px;
+      }
+
+      #templateText {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="header">
+      <h1>Kalkulator Harga Customer Service</h1>
+      <p class="subtitle">
+        Pilih metode pembayaran, isi ongkir dan diskon kirim, lalu sistem akan membuat detail hitungan dan template pesan customer.
+      </p>
+    </div>
+
+    <form id="priceForm">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="group-label">Metode Pembayaran</label>
+
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="metodePembayaran" value="COD" checked />
+              <span>COD</span>
+            </label>
+
+            <label class="radio-card">
+              <input type="radio" name="metodePembayaran" value="Transfer" />
+              <span>Transfer</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label class="group-label" for="lokasi">Lokasi</label>
+          <input
+            type="text"
+            id="lokasi"
+            placeholder="Contoh: Jakarta, Bandung, Surabaya"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="group-label" for="ongkir">Ongkos Kirim</label>
+          <input
+            type="text"
+            id="ongkir"
+            placeholder="Contoh: 30000 atau 30.000"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="group-label" for="diskonKirim">Diskon Kirim</label>
+          <input
+            type="text"
+            id="diskonKirim"
+            placeholder="Contoh: 5000 atau 5.000"
+            required
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit & Hitung Harga</button>
+    </form>
+
+    <div class="summary-box" id="summaryBox"></div>
+
+    <section class="result-wrapper" id="resultWrapper">
+      <div class="result-card">
+        <h2>Detail Hitungan Internal</h2>
+        <p class="editable-info">
+          Area ini readonly untuk cek rumus dan nominal per paket.
+        </p>
+
+        <textarea id="detailText" readonly></textarea>
+
+        <div class="button-row">
+          <button type="button" class="copy-btn copy-detail-btn" id="copyDetailBtn">
+            Copy Detail
+          </button>
+
+          <button type="button" class="copy-btn reset-btn" id="clearDetailBtn">
+            Clear Detail
+          </button>
+        </div>
+
+        <div class="success" id="copyDetailSuccess">Detail hitungan berhasil dicopy ✔️</div>
+
+        <p class="note">
+          COD: semua paket pakai potongan, admin, dan PPN. Transfer: hanya paket 1 yang tetap pakai potongan, admin, dan PPN.
+        </p>
+      </div>
+
+      <div class="result-card">
+        <h2>Template Pesan Customer</h2>
+        <p class="editable-info">
+          Text box ini bisa diedit dulu sebelum dikirim ke customer.
+        </p>
+
+        <textarea id="templateText"></textarea>
+
+        <div class="button-row">
+          <button type="button" class="copy-btn" id="copyTemplateBtn">
+            Copy Template
+          </button>
+
+          <button type="button" class="copy-btn reset-btn" id="clearTemplateBtn">
+            Clear Template
+          </button>
+        </div>
+
+        <div class="success" id="copyTemplateSuccess">Template pesan berhasil dicopy ✔️</div>
+
+        <p class="note">
+          Simbol coret pakai tanda ~contoh~ karena biasanya akan terbaca sebagai strikethrough di WhatsApp.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("priceForm");
+    const lokasiInput = document.getElementById("lokasi");
+    const ongkirInput = document.getElementById("ongkir");
+    const diskonKirimInput = document.getElementById("diskonKirim");
+
+    const summaryBox = document.getElementById("summaryBox");
+    const resultWrapper = document.getElementById("resultWrapper");
+
+    const detailText = document.getElementById("detailText");
+    const templateText = document.getElementById("templateText");
+
+    const copyDetailBtn = document.getElementById("copyDetailBtn");
+    const copyTemplateBtn = document.getElementById("copyTemplateBtn");
+    const clearDetailBtn = document.getElementById("clearDetailBtn");
+    const clearTemplateBtn = document.getElementById("clearTemplateBtn");
+
+    const copyDetailSuccess = document.getElementById("copyDetailSuccess");
+    const copyTemplateSuccess = document.getElementById("copyTemplateSuccess");
+
+    const paketList = [
+      {
+        key: "paket1",
+        emoji: "🎁",
+        nama: "Paket Coba Dulu",
+        isi: 1,
+        hargaDasar: 85000,
+        potonganCOD: 5000,
+        potonganTransfer: 5000,
+        adminPpnCOD: true,
+        adminPpnTransfer: true,
+        labelTambahan: ""
+      },
+      {
+        key: "paket2",
+        emoji: "🌟",
+        nama: "Paket Kuat",
+        isi: 2,
+        hargaDasar: 170000,
+        potonganCOD: 10000,
+        potonganTransfer: 0,
+        adminPpnCOD: true,
+        adminPpnTransfer: false,
+        labelTambahan: "✨ Best Seller"
+      },
+      {
+        key: "paket3",
+        emoji: "🏆",
+        nama: "Paket Jagoan",
+        isi: 3,
+        hargaDasar: 246000,
+        potonganCOD: 15000,
+        potonganTransfer: 0,
+        adminPpnCOD: true,
+        adminPpnTransfer: false,
+        labelTambahan: "✨"
+      }
+    ];
+
+    function cleanNumber(value) {
+      return Number(String(value).replace(/[^\d]/g, "")) || 0;
+    }
+
+    function roundUpToThousand(number) {
+      return Math.ceil(number / 1000) * 1000;
+    }
+
+    function formatRupiah(number) {
+      return "Rp" + Math.round(Number(number)).toLocaleString("id-ID");
+    }
+
+    function formatTanpaRp(number) {
+      return Math.round(Number(number)).toLocaleString("id-ID");
+    }
+
+    function formatInputRupiah(input) {
+      input.addEventListener("input", function () {
+        const number = cleanNumber(this.value);
+        this.value = number ? number.toLocaleString("id-ID") : "";
+      });
+    }
+
+    function getMetodePembayaran() {
+      const selected = document.querySelector('input[name="metodePembayaran"]:checked');
+      return selected ? selected.value : "COD";
+    }
+
+    function getPotonganByMetode(paket, metodePembayaran) {
+      return metodePembayaran === "COD" ? paket.potonganCOD : paket.potonganTransfer;
+    }
+
+    function getStatusAdminPpnByMetode(paket, metodePembayaran) {
+      return metodePembayaran === "COD" ? paket.adminPpnCOD : paket.adminPpnTransfer;
+    }
+
+    function hitungHargaFinal(hargaDasar, ongkir, selisihKirim, potongan, pakaiAdminPPN) {
+      const totalAwal = hargaDasar + selisihKirim - potongan;
+
+      let biayaAdmin = 0;
+      let adminFinal = 0;
+      let biayaPPN = 0;
+      let PPNFinal = 0;
+
+      if (pakaiAdminPPN) {
+        biayaAdmin = totalAwal * 0.03;
+        adminFinal = roundUpToThousand(biayaAdmin);
+
+        biayaPPN = biayaAdmin * 0.11;
+        PPNFinal = roundUpToThousand(biayaPPN);
+      }
+
+      const totalFinal = totalAwal + adminFinal + PPNFinal;
+      const hargaCoret = hargaDasar + ongkir + adminFinal + PPNFinal;
+
+      return {
+        totalAwal,
+        biayaAdmin,
+        adminFinal,
+        biayaPPN,
+        PPNFinal,
+        totalFinal,
+        hargaCoret
+      };
+    }
+
+    function buildDetailPaket(paket, hasil, selisihKirim, potongan, pakaiAdminPPN) {
+      const statusAdmin = pakaiAdminPPN ? "YA" : "TIDAK";
+      const statusPotongan = potongan > 0 ? formatRupiah(potongan) : "Tidak ada potongan";
+
+      return `${paket.emoji} ${paket.nama} - ${paket.isi} box Ettagrow
+--------------------------------
+Harga dasar              : ${formatRupiah(paket.hargaDasar)}
+Selisih kirim            : ${formatRupiah(selisihKirim)}
+Potongan paket           : ${statusPotongan}
+
+Rumus total awal:
+${formatRupiah(paket.hargaDasar)} + ${formatRupiah(selisihKirim)} - ${formatRupiah(potongan)}
+= ${formatRupiah(hasil.totalAwal)}
+
+Admin + PPN              : ${statusAdmin}
+Admin 3%                 : ${formatRupiah(hasil.biayaAdmin)}
+Admin dibulatkan         : ${formatRupiah(hasil.adminFinal)}
+PPN 11% dari admin       : ${formatRupiah(hasil.biayaPPN)}
+PPN dibulatkan           : ${formatRupiah(hasil.PPNFinal)}
+
+Rumus total final:
+${formatRupiah(hasil.totalAwal)} + ${formatRupiah(hasil.adminFinal)} + ${formatRupiah(hasil.PPNFinal)}
+= ${formatRupiah(hasil.totalFinal)}
+
+Harga coret              : ${formatRupiah(hasil.hargaCoret)}
+Harga jadi               : ${formatRupiah(hasil.totalFinal)}`;
+    }
+
+    function buildTemplateLine(paket, hasil) {
+      const suffix = paket.labelTambahan ? ` ${paket.labelTambahan}` : "";
+
+      if (paket.isi === 1) {
+        return `${paket.emoji} ${paket.nama} Isi : ${paket.isi} box Ettagrow
+PROMO: ~${formatTanpaRp(hasil.hargaCoret)}~ JADI ${formatTanpaRp(hasil.totalFinal)}${suffix}`;
+      }
+
+      return `${paket.emoji} ${paket.nama} Isi : ${paket.isi} box Ettagrow
+PROMO : ~${formatRupiah(hasil.hargaCoret)}~ JADI ${formatRupiah(hasil.totalFinal)}${suffix}`;
+    }
+
+    function showSuccess(element) {
+      element.style.display = "block";
+
+      setTimeout(function () {
+        element.style.display = "none";
+      }, 2500);
+    }
+
+    async function copyTextFromTextarea(textareaElement, successElement) {
+      try {
+        await navigator.clipboard.writeText(textareaElement.value);
+        showSuccess(successElement);
+      } catch (error) {
+        textareaElement.select();
+        document.execCommand("copy");
+        showSuccess(successElement);
+      }
+    }
+
+    function resetResultMessages() {
+      copyDetailSuccess.style.display = "none";
+      copyTemplateSuccess.style.display = "none";
+    }
+
+    formatInputRupiah(ongkirInput);
+    formatInputRupiah(diskonKirimInput);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const metodePembayaran = getMetodePembayaran();
+      const lokasi = lokasiInput.value.trim();
+      const ongkir = cleanNumber(ongkirInput.value);
+      const diskonKirim = cleanNumber(diskonKirimInput.value);
+      const selisihKirim = ongkir - diskonKirim;
+
+      const hasilPaket = paketList.map(function (paket) {
+        const potongan = getPotonganByMetode(paket, metodePembayaran);
+        const pakaiAdminPPN = getStatusAdminPpnByMetode(paket, metodePembayaran);
+
+        const hasil = hitungHargaFinal(
+          paket.hargaDasar,
+          ongkir,
+          selisihKirim,
+          potongan,
+          pakaiAdminPPN
+        );
+
+        return {
+          paket,
+          potongan,
+          pakaiAdminPPN,
+          hasil
+        };
+      });
+
+      const detailPaketText = hasilPaket
+        .map(function (item) {
+          return buildDetailPaket(
+            item.paket,
+            item.hasil,
+            selisihKirim,
+            item.potongan,
+            item.pakaiAdminPPN
+          );
+        })
+        .join("\n\n");
+
+      const detailHitungan = `DETAIL HITUNGAN INTERNAL
+==============================
+
+Metode pembayaran        : ${metodePembayaran}
+Lokasi                   : ${lokasi}
+Ongkos kirim             : ${formatRupiah(ongkir)}
+Diskon kirim             : ${formatRupiah(diskonKirim)}
+Selisih kirim            : ${formatRupiah(selisihKirim)}
+
+Rules:
+- COD: 1, 2, 3 box pakai potongan + admin + PPN.
+- Transfer: 1 box tetap pakai potongan + admin + PPN.
+- Transfer: 2 dan 3 box tanpa potongan, tanpa admin, tanpa PPN.
+
+==============================
+
+${detailPaketText}`;
+
+      const templatePaketText = hasilPaket
+        .map(function (item) {
+          return buildTemplateLine(item.paket, item.hasil);
+        })
+        .join("\n\n");
+
+      const templatePesan = `🏷️ PROMO PAYDAY ((TERBATAS)) 📌 Disc Up to 30% untuk pemesanan HARI INI saja
+
+${templatePaketText}`;
+
+      const summaryText = hasilPaket
+        .map(function (item) {
+          return `${item.paket.isi} box: ${formatRupiah(item.hasil.totalFinal)}`;
+        })
+        .join(" • ");
+
+      summaryBox.innerHTML = `
+        <strong>Hasil ${metodePembayaran}</strong><br />
+        ${summaryText}
+      `;
+
+      detailText.value = detailHitungan;
+      templateText.value = templatePesan;
+
+      summaryBox.style.display = "block";
+      resultWrapper.style.display = "grid";
+      resetResultMessages();
+    });
+
+    copyDetailBtn.addEventListener("click", function () {
+      copyTextFromTextarea(detailText, copyDetailSuccess);
+    });
+
+    copyTemplateBtn.addEventListener("click", function () {
+      copyTextFromTextarea(templateText, copyTemplateSuccess);
+    });
+
+    clearDetailBtn.addEventListener("click", function () {
+      detailText.value = "";
+      copyDetailSuccess.style.display = "none";
+    });
+
+    clearTemplateBtn.addEventListener("click", function () {
+      templateText.value = "";
+      copyTemplateSuccess.style.display = "none";
+    });
+  </script>
+</body>
+</html>
