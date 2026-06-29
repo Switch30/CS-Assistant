@@ -1,0 +1,186 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if isOwnUser(userId) || isAdmin();
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && isValidUserProfileCreate();
+      allow update: if (
+        isOwnUser(userId)
+        && isActiveUser(request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLoginAt'])
+      ) || (
+        isValidOwnAdminProfileMigration(userId)
+      ) || (
+        isAdmin()
+        && userId != request.auth.uid
+        && resource.data.role != 'admin'
+        && resource.data.usernameLower != 'admin'
+        && isValidUserSoftDelete()
+      );
+      allow delete: if false;
+    }
+
+    match /customers/{customerId} {
+      allow read: if isOwner();
+      allow create: if isSignedIn()
+        && isActiveUser(request.auth.uid)
+        && request.resource.data.ownerId == request.auth.uid
+        && isValidCustomer();
+      allow update: if isOwner() && isValidCustomerIdentityUpdate();
+      allow delete: if isOwner();
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userProfile(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function isOwnUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isActiveUser(uid) {
+      return isSignedIn()
+        && (
+          isAdminEmail()
+          || (
+            exists(/databases/$(database)/documents/users/$(uid))
+            && userProfile(uid).data.status != 'deleted'
+          )
+        );
+    }
+
+    function hasActiveUserProfile(uid) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(uid))
+        && userProfile(uid).data.status != 'deleted';
+    }
+
+    function isAdmin() {
+      return isAdminEmail()
+        || (
+          hasActiveUserProfile(request.auth.uid)
+          && (
+            userProfile(request.auth.uid).data.role == 'admin'
+            || userProfile(request.auth.uid).data.usernameLower == 'admin'
+          )
+        );
+    }
+
+    function isAdminEmail() {
+      return isSignedIn() && request.auth.token.email == 'admin@cs-assistant.local';
+    }
+
+    function isOwner() {
+      return isSignedIn()
+        && isActiveUser(request.auth.uid)
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    function isValidUserProfileCreate() {
+      return request.resource.data.keys().hasOnly([
+        'username',
+        'usernameLower',
+        'role',
+        'status',
+        'createdAt',
+        'lastLoginAt'
+      ])
+      && request.resource.data.username is string
+      && request.resource.data.username.size() >= 3
+      && request.resource.data.username.size() <= 32
+      && request.resource.data.usernameLower is string
+      && request.resource.data.status == 'active'
+      && (
+        (
+          request.resource.data.usernameLower == 'admin'
+          && request.resource.data.role == 'admin'
+          && isAdminEmail()
+        )
+        || (
+          request.resource.data.usernameLower != 'admin'
+          && request.resource.data.role == 'user'
+        )
+      );
+    }
+
+    function isValidOwnAdminProfileMigration(userId) {
+      return isOwnUser(userId)
+        && isAdminEmail()
+        && resource.data.status != 'deleted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'username',
+          'usernameLower',
+          'role',
+          'status',
+          'lastLoginAt',
+          'updatedAt'
+        ])
+        && request.resource.data.username == 'admin'
+        && request.resource.data.usernameLower == 'admin'
+        && request.resource.data.role == 'admin'
+        && request.resource.data.status == 'active';
+    }
+
+    function isValidUserSoftDelete() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'status',
+        'deletedAt',
+        'updatedAt'
+      ])
+      && request.resource.data.status == 'deleted';
+    }
+
+    function isValidCustomerIdentityUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name',
+        'domisili'
+      ])
+      && request.resource.data.name is string
+      && request.resource.data.name.size() > 0
+      && request.resource.data.name.size() <= 120
+      && request.resource.data.domisili is string
+      && request.resource.data.domisili.size() > 0
+      && request.resource.data.domisili.size() <= 120;
+    }
+
+    function isValidCustomer() {
+      return request.resource.data.keys().hasOnly([
+        'ownerId',
+        'name',
+        'domisili',
+        'metodePembayaran',
+        'ongkir',
+        'diskonKirim',
+        'selisihKirim',
+        'adminTotal',
+        'ppnTotal',
+        'adminPpnTotal',
+        'packages',
+        'createdAt'
+      ])
+      && request.resource.data.ownerId is string
+      && request.resource.data.name is string
+      && request.resource.data.name.size() > 0
+      && request.resource.data.name.size() <= 120
+      && request.resource.data.domisili is string
+      && request.resource.data.domisili.size() > 0
+      && request.resource.data.domisili.size() <= 120
+      && request.resource.data.metodePembayaran in ['COD', 'Transfer']
+      && request.resource.data.ongkir is number
+      && request.resource.data.diskonKirim is number
+      && request.resource.data.selisihKirim is number
+      && request.resource.data.adminTotal is number
+      && request.resource.data.ppnTotal is number
+      && request.resource.data.adminPpnTotal is number
+      && request.resource.data.packages is list
+      && request.resource.data.packages.size() == 3;
+    }
+  }
+}
