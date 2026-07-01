@@ -1,23 +1,16 @@
 import { CheckCircle2, Copy, Eye, EyeOff, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formatDateTime, formatRupiah } from "../lib/format";
 import { buildDetailText, buildTemplateText } from "../lib/pricing";
 import { deleteCustomer, getCustomer, updateCustomerIdentity } from "../services/customers";
-import type { CustomerRecord } from "../types";
+import type { CustomerRecord, PaymentMethod } from "../types";
+
+const paymentMethods: PaymentMethod[] = ["COD", "Transfer"];
 
 function getCustomerIdFromPath() {
   return window.location.pathname.split("/").filter(Boolean)[1] || "";
-}
-
-function InternalInfoRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="internal-info-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
 }
 
 export function CustomerDetailPage() {
@@ -34,27 +27,34 @@ export function CustomerDetailPage() {
   const [editName, setEditName] = useState("");
   const [editDomisili, setEditDomisili] = useState("");
 
-  const internalDetailText = useMemo(() => {
+  const internalDetailTexts = useMemo(() => {
     if (!customer) {
-      return "";
+      return null;
     }
 
-    return buildDetailText({
-      metodePembayaran: customer.metodePembayaran,
-      customerName: customer.name,
-      domisili: customer.domisili,
-      ongkir: customer.ongkir,
-      diskonKirim: customer.diskonKirim,
-      packages: customer.packages
-    });
+    return Object.fromEntries(
+      paymentMethods.map((method) => [
+        method,
+        buildDetailText({
+          metodePembayaran: method,
+          customerName: customer.name,
+          domisili: customer.domisili,
+          ongkir: customer.ongkir,
+          diskonKirim: customer.diskonKirim,
+          packages: customer.calculations[method].packages
+        })
+      ])
+    ) as Record<PaymentMethod, string>;
   }, [customer]);
 
-  const templateCustomerText = useMemo(() => {
+  const templateCustomerTexts = useMemo(() => {
     if (!customer) {
-      return "";
+      return null;
     }
 
-    return buildTemplateText(customer.packages);
+    return Object.fromEntries(
+      paymentMethods.map((method) => [method, buildTemplateText(customer.calculations[method].packages)])
+    ) as Record<PaymentMethod, string>;
   }, [customer]);
 
   useEffect(() => {
@@ -140,14 +140,22 @@ export function CustomerDetailPage() {
     }
   }
 
-  async function copyInternalDetail() {
-    await navigator.clipboard.writeText(internalDetailText);
-    setStatus("Detail perhitungan berhasil disalin.");
+  async function copyInternalDetail(method: PaymentMethod) {
+    if (!internalDetailTexts) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(internalDetailTexts[method]);
+    setStatus(`Detail perhitungan ${method} berhasil disalin.`);
   }
 
-  async function copyTemplateCustomer() {
-    await navigator.clipboard.writeText(templateCustomerText);
-    setStatus("Template customer berhasil disalin.");
+  async function copyTemplateCustomer(method: PaymentMethod) {
+    if (!templateCustomerTexts) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(templateCustomerTexts[method]);
+    setStatus(`Template customer ${method} berhasil disalin.`);
   }
 
   async function handleDeleteCustomer() {
@@ -197,7 +205,20 @@ export function CustomerDetailPage() {
     );
   }
 
-  const selisihKirim = customer.ongkir - customer.diskonKirim;
+  const comparisonRows = customer.calculations.COD.packages.map((codPackage) => {
+    const transferPackage = customer.calculations.Transfer.packages.find(
+      (item) => item.key === codPackage.key
+    );
+
+    return {
+      key: codPackage.key,
+      name: codPackage.nama,
+      isi: codPackage.isi,
+      codTotal: codPackage.totalFinal,
+      transferTotal: transferPackage?.totalFinal ?? 0,
+      difference: codPackage.totalFinal - (transferPackage?.totalFinal ?? 0)
+    };
+  });
 
   return (
     <>
@@ -206,7 +227,7 @@ export function CustomerDetailPage() {
         title={customer.name}
         description={`${customer.domisili} - ${formatDateTime(customer.createdAt)}`}
         action={
-          <div className="header-actions">
+          <div className="header-actions customer-header-actions">
             {isEditing ? (
               <>
                 <button
@@ -230,7 +251,25 @@ export function CustomerDetailPage() {
               </>
             ) : (
               <>
-                <button className="primary-button compact" type="button" onClick={startEditing}>
+                <button
+                  className="primary-button compact"
+                  type="button"
+                  onClick={() => copyTemplateCustomer("COD")}
+                  disabled={!templateCustomerTexts}
+                >
+                  <Copy size={18} />
+                  Copy Template COD
+                </button>
+                <button
+                  className="primary-button compact"
+                  type="button"
+                  onClick={() => copyTemplateCustomer("Transfer")}
+                  disabled={!templateCustomerTexts}
+                >
+                  <Copy size={18} />
+                  Copy Template Transfer
+                </button>
+                <button className="ghost-button compact" type="button" onClick={startEditing}>
                   <Pencil size={18} />
                   Edit
                 </button>
@@ -300,27 +339,25 @@ export function CustomerDetailPage() {
       <section className="panel table-panel">
         <div className="section-title table-heading">
           <h2>Hasil Per Paket</h2>
-          <p>Breakdown admin, PPN, dan harga final.</p>
+          <p>Perbandingan harga final COD dan Transfer.</p>
         </div>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
                 <th>Paket</th>
-                <th>Admin</th>
-                <th>PPN</th>
-                <th>Total Final</th>
+                <th>COD</th>
+                <th>Transfer</th>
               </tr>
             </thead>
             <tbody>
-              {customer.packages.map((item) => (
+              {comparisonRows.map((item) => (
                 <tr key={item.key}>
                   <td data-label="Paket">
-                    {item.nama} ({item.isi} box)
+                    {item.name} ({item.isi} box)
                   </td>
-                  <td data-label="Admin">{formatRupiah(item.adminFinal)}</td>
-                  <td data-label="PPN">{formatRupiah(item.ppnFinal)}</td>
-                  <td data-label="Total Final">{formatRupiah(item.totalFinal)}</td>
+                  <td data-label="COD">{formatRupiah(item.codTotal)}</td>
+                  <td data-label="Transfer">{formatRupiah(item.transferTotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -332,22 +369,13 @@ export function CustomerDetailPage() {
         <div className="internal-detail-header">
           <div className="section-title">
             <h2>Detail Perhitungan</h2>
+            <p>Disembunyikan default supaya halaman tetap ringkas.</p>
           </div>
           <div
             className={`header-actions internal-detail-actions ${
               showInternalDetail ? "has-copy-action" : ""
             }`}
           >
-            {showInternalDetail && (
-              <button
-                className="ghost-button compact"
-                type="button"
-                onClick={copyInternalDetail}
-              >
-                <Copy size={18} />
-                Copy
-              </button>
-            )}
             <button
               className="primary-button compact"
               type="button"
@@ -361,86 +389,23 @@ export function CustomerDetailPage() {
 
         {showInternalDetail && (
           <div className="internal-detail-content">
-            <div className="internal-summary-grid" aria-label="Ringkasan detail perhitungan">
-              <div className="internal-summary-card">
-                <span>Metode Pembayaran</span>
-                <strong>{customer.metodePembayaran}</strong>
-              </div>
-              <div className="internal-summary-card">
-                <span>Ongkir Akhir</span>
-                <strong>{formatRupiah(selisihKirim)}</strong>
-              </div>
-              <div className="internal-summary-card">
-                <span>Admin + PPN Total</span>
-                <strong>{formatRupiah(customer.adminPpnTotal)}</strong>
-              </div>
-              <div className="internal-summary-card">
-                <span>Tanggal Entry</span>
-                <strong>{formatDateTime(customer.createdAt)}</strong>
-              </div>
-            </div>
-
-            <div className="internal-detail-block">
-              <h3>Data Customer</h3>
-              <div className="internal-detail-rows">
-                <InternalInfoRow label="Nama customer" value={customer.name} />
-                <InternalInfoRow label="Domisili" value={customer.domisili} />
-                <InternalInfoRow label="Ongkos kirim" value={formatRupiah(customer.ongkir)} />
-                <InternalInfoRow label="Diskon kirim" value={formatRupiah(customer.diskonKirim)} />
-                <InternalInfoRow label="Ongkir Akhir" value={formatRupiah(selisihKirim)} />
-              </div>
-            </div>
-
-            <div className="internal-package-list">
-              {customer.packages.map((item) => {
-                const hasAdminPpn = item.adminFinal > 0 || item.ppnFinal > 0;
-                const potonganText =
-                  item.potongan > 0 ? formatRupiah(item.potongan) : "Tidak ada potongan";
-
-                return (
-                  <article className="internal-package-card" key={item.key}>
-                    <div className="internal-package-title">
-                      <div>
-                        <h3>{item.nama}</h3>
-                        <p>{item.isi} box Ettagrow</p>
-                      </div>
-                      <strong>{formatRupiah(item.totalFinal)}</strong>
-                    </div>
-
-                    <div className="internal-detail-rows">
-                      <InternalInfoRow label="Harga dasar" value={formatRupiah(item.hargaDasar)} />
-                      <InternalInfoRow label="Ongkir Akhir" value={formatRupiah(selisihKirim)} />
-                      <InternalInfoRow label="Potongan paket" value={potonganText} />
-                      <InternalInfoRow label="Admin + PPN" value={hasAdminPpn ? "YA" : "TIDAK"} />
-                      <InternalInfoRow
-                        label="Admin dibulatkan"
-                        value={formatRupiah(item.adminFinal)}
-                      />
-                      <InternalInfoRow label="PPN dibulatkan" value={formatRupiah(item.ppnFinal)} />
-                      <InternalInfoRow label="Harga coret" value={formatRupiah(item.hargaCoret)} />
-                    </div>
-
-                    <div className="formula-grid">
-                      <div className="formula-box">
-                        <span>Rumus total awal</span>
-                        <code>
-                          {formatRupiah(item.hargaDasar)} + {formatRupiah(selisihKirim)} -{" "}
-                          {formatRupiah(item.potongan)}
-                        </code>
-                        <strong>= {formatRupiah(item.totalAwal)}</strong>
-                      </div>
-                      <div className="formula-box">
-                        <span>Rumus total final</span>
-                        <code>
-                          {formatRupiah(item.totalAwal)} + {formatRupiah(item.adminFinal)} +{" "}
-                          {formatRupiah(item.ppnFinal)}
-                        </code>
-                        <strong>= {formatRupiah(item.totalFinal)}</strong>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="result-method-grid">
+              {paymentMethods.map((method) => (
+                <div className="calculator-result-block" key={method}>
+                  <div className="calculation-method-header">
+                    <h3>{method}</h3>
+                    <button
+                      className="ghost-button compact"
+                      type="button"
+                      onClick={() => copyInternalDetail(method)}
+                    >
+                      <Copy size={18} />
+                      Copy Detail
+                    </button>
+                  </div>
+                  <textarea readOnly value={internalDetailTexts?.[method] ?? ""} />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -457,16 +422,6 @@ export function CustomerDetailPage() {
               showTemplateCustomer ? "has-copy-action" : ""
             }`}
           >
-            {showTemplateCustomer && (
-              <button
-                className="ghost-button compact"
-                type="button"
-                onClick={copyTemplateCustomer}
-              >
-                <Copy size={18} />
-                Copy
-              </button>
-            )}
             <button
               className="primary-button compact"
               type="button"
@@ -479,12 +434,27 @@ export function CustomerDetailPage() {
         </div>
 
         {showTemplateCustomer && (
-          <div className="internal-detail-content">
-            <textarea
-              className="template-customer-textarea"
-              readOnly
-              value={templateCustomerText}
-            />
+          <div className="internal-detail-content template-method-list">
+            {paymentMethods.map((method) => (
+              <div className="template-method-block" key={method}>
+                <div className="calculation-method-header">
+                  <h3>{method}</h3>
+                  <button
+                    className="ghost-button compact"
+                    type="button"
+                    onClick={() => copyTemplateCustomer(method)}
+                  >
+                    <Copy size={18} />
+                    Copy Template
+                  </button>
+                </div>
+                <textarea
+                  className="template-customer-textarea"
+                  readOnly
+                  value={templateCustomerTexts?.[method] ?? ""}
+                />
+              </div>
+            ))}
           </div>
         )}
       </section>

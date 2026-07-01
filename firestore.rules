@@ -155,14 +155,10 @@ service cloud.firestore {
         'ownerId',
         'name',
         'domisili',
-        'metodePembayaran',
         'ongkir',
         'diskonKirim',
         'selisihKirim',
-        'adminTotal',
-        'ppnTotal',
-        'adminPpnTotal',
-        'packages',
+        'calculations',
         'createdAt'
       ])
       && request.resource.data.ownerId is string
@@ -172,15 +168,34 @@ service cloud.firestore {
       && request.resource.data.domisili is string
       && request.resource.data.domisili.size() > 0
       && request.resource.data.domisili.size() <= 120
-      && request.resource.data.metodePembayaran in ['COD', 'Transfer']
       && request.resource.data.ongkir is number
       && request.resource.data.diskonKirim is number
       && request.resource.data.selisihKirim is number
-      && request.resource.data.adminTotal is number
-      && request.resource.data.ppnTotal is number
-      && request.resource.data.adminPpnTotal is number
-      && request.resource.data.packages is list
-      && request.resource.data.packages.size() == 3;
+      && isValidCustomerCalculations();
+    }
+
+    function isValidCustomerCalculations() {
+      return request.resource.data.calculations is map
+        && request.resource.data.calculations.keys().hasOnly(['COD', 'Transfer'])
+        && isValidCustomerCalculation(request.resource.data.calculations.COD, 'COD')
+        && isValidCustomerCalculation(request.resource.data.calculations.Transfer, 'Transfer');
+    }
+
+    function isValidCustomerCalculation(calculation, method) {
+      return calculation is map
+        && calculation.keys().hasOnly([
+          'metodePembayaran',
+          'adminTotal',
+          'ppnTotal',
+          'adminPpnTotal',
+          'packages'
+        ])
+        && calculation.metodePembayaran == method
+        && calculation.adminTotal is number
+        && calculation.ppnTotal is number
+        && calculation.adminPpnTotal is number
+        && calculation.packages is list
+        && calculation.packages.size() == 3;
     }
   }
 }

@@ -35,6 +35,7 @@ a {
 .app-shell {
   display: grid;
   min-height: 100vh;
+  min-height: 100svh;
   grid-template-columns: 260px 1fr;
 }
 
@@ -152,7 +153,7 @@ a {
   width: 100%;
   max-width: none;
   min-width: 0;
-  padding: 32px;
+  padding: clamp(20px, 2.2vw, 32px);
 }
 
 .auth-shell {
@@ -166,7 +167,8 @@ a {
 }
 
 .auth-panel {
-  width: min(100%, 460px);
+  width: calc(100vw - 32px);
+  max-width: 460px;
   padding: 28px;
 }
 
@@ -259,6 +261,7 @@ p {
 
 .dashboard-grid,
 .result-grid,
+.result-method-grid,
 .detail-grid {
   display: grid;
   gap: 18px;
@@ -272,6 +275,16 @@ p {
 .result-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 18px;
+}
+
+.result-stack {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.result-method-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .detail-grid {
@@ -360,6 +373,7 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  min-width: 0;
   padding: 6px;
   border: 1px solid #e4e7ec;
   border-radius: 14px;
@@ -367,6 +381,7 @@ textarea:focus {
 }
 
 .segmented-control button {
+  min-width: 0;
   min-height: 40px;
   border: 0;
   border-radius: 10px;
@@ -384,6 +399,12 @@ textarea:focus {
 .button-row {
   display: flex;
   flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -471,6 +492,12 @@ textarea:focus {
   font-weight: 800;
 }
 
+.status-banner.error {
+  border-color: #fecaca;
+  color: #b42318;
+  background: #fef2f2;
+}
+
 .detail-status {
   margin-bottom: 18px;
 }
@@ -508,6 +535,123 @@ textarea:focus {
   display: grid;
   gap: 10px;
   margin-top: 16px;
+}
+
+.method-summary-list {
+  display: grid;
+  gap: 18px;
+}
+
+.method-summary {
+  min-width: 0;
+}
+
+.method-summary .package-list {
+  margin-top: 10px;
+}
+
+.method-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.method-summary-header strong {
+  color: #be185d;
+  font-size: 14px;
+}
+
+.method-summary-header span {
+  color: #667085;
+  text-align: right;
+}
+
+.comparison-list {
+  display: grid;
+  gap: 8px;
+}
+
+.comparison-header,
+.comparison-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1.2fr) repeat(2, minmax(86px, 0.8fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.comparison-header {
+  padding: 0 2px 4px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.comparison-row {
+  padding: 12px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.comparison-row div {
+  min-width: 0;
+}
+
+.comparison-row span {
+  display: block;
+  margin-bottom: 5px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.comparison-row strong {
+  display: block;
+  color: #101828;
+  font-size: 13px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.comparison-row b {
+  color: #101828;
+  font-size: 14px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.method-fee-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.method-fee-summary div {
+  padding: 12px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.method-fee-summary span {
+  display: block;
+  margin-bottom: 5px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.method-fee-summary strong {
+  color: #101828;
+  font-size: 15px;
 }
 
 .package-card {
@@ -566,6 +710,10 @@ textarea:focus {
   padding: 18px 18px 0;
 }
 
+.customer-header-actions {
+  max-width: 680px;
+}
+
 .internal-detail-panel {
   margin-top: 18px;
   overflow: hidden;
@@ -583,7 +731,8 @@ textarea:focus {
   margin-bottom: 0;
 }
 
-.result-grid textarea {
+.result-grid textarea,
+.result-method-grid textarea {
   border: 0;
   border-top: 1px solid #e4e7ec;
   border-radius: 0 0 18px 18px;
@@ -690,6 +839,48 @@ textarea:focus {
   gap: 14px;
 }
 
+.calculation-method-block {
+  display: grid;
+  gap: 12px;
+}
+
+.calculation-method-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calculation-method-header h3 {
+  margin: 4px 0 0;
+  color: #be185d;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.template-method-list {
+  gap: 20px;
+}
+
+.template-method-block {
+  display: grid;
+  gap: 12px;
+}
+
+.calculator-result-block {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.calculator-result-block textarea {
+  min-height: 360px;
+  border-color: #e4e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
 .internal-package-card {
   overflow: hidden;
 }
@@ -745,9 +936,14 @@ textarea:focus {
 
 .toolbar {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px) auto;
   gap: 14px;
+  align-items: end;
   padding: 18px;
+}
+
+.filter-clear-button {
+  white-space: nowrap;
 }
 
 .search-field {
@@ -820,8 +1016,15 @@ tbody tr:hover {
   background: #fff7fb;
 }
 
+.table-stack {
+  display: grid;
+  gap: 4px;
+  color: #344054;
+  font-weight: 800;
+}
+
 .table-action-button {
-  min-width: 96px;
+  min-width: 128px;
 }
 
 .empty-state {
@@ -927,7 +1130,7 @@ tbody tr:hover {
   }
 
   .nav-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .account-box {
@@ -946,6 +1149,7 @@ tbody tr:hover {
 
   .dashboard-grid,
   .result-grid,
+  .result-method-grid,
   .detail-grid,
   .toolbar {
     grid-template-columns: 1fr;
@@ -963,7 +1167,7 @@ tbody tr:hover {
 
   .sidebar,
   .main-panel {
-    padding: 16px;
+    padding: 14px;
   }
 
   .sidebar {
@@ -985,12 +1189,12 @@ tbody tr:hover {
   }
 
   .nav-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   }
 
   .nav-list a {
     min-height: 42px;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 10px;
     font-size: 13px;
   }
@@ -1014,7 +1218,14 @@ tbody tr:hover {
   }
 
   .header-actions {
-    flex-direction: column;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .header-actions > :only-child {
+    grid-column: 1 / -1;
   }
 
   .page-header {
@@ -1070,6 +1281,7 @@ tbody tr:hover {
   .danger-button {
     width: 100%;
     min-height: 46px;
+    padding-inline: 12px;
   }
 
   .status-banner {
@@ -1087,6 +1299,65 @@ tbody tr:hover {
     font-size: 18px;
   }
 
+  .method-summary-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .method-summary-header span {
+    text-align: left;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quick-actions > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .comparison-header,
+  .comparison-row {
+    min-width: 0;
+  }
+
+  .comparison-header {
+    display: none;
+  }
+
+  .comparison-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .comparison-row div {
+    grid-column: 1 / -1;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4e7ec;
+  }
+
+  .comparison-row b {
+    display: grid;
+    gap: 4px;
+    white-space: normal;
+  }
+
+  .comparison-row b::before {
+    color: #667085;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .comparison-row b:nth-of-type(1)::before {
+    content: "COD";
+  }
+
+  .comparison-row b:nth-of-type(2)::before {
+    content: "Transfer";
+  }
+
   .result-header {
     align-items: center;
     padding: 16px 16px 0;
@@ -1099,7 +1370,6 @@ tbody tr:hover {
 
   .internal-detail-actions {
     width: 100%;
-    flex-direction: row;
   }
 
   .internal-detail-actions.has-copy-action {
@@ -1133,6 +1403,15 @@ tbody tr:hover {
 
   .internal-package-title > strong {
     text-align: left;
+  }
+
+  .calculation-method-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calculation-method-header .ghost-button {
+    width: 100%;
   }
 
   .result-header .section-title {

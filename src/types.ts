@@ -14,19 +14,25 @@ export type PackageResult = {
   hargaCoret: number;
 };
 
+export type CustomerCalculation = {
+  metodePembayaran: PaymentMethod;
+  adminTotal: number;
+  ppnTotal: number;
+  adminPpnTotal: number;
+  packages: PackageResult[];
+};
+
+export type CustomerCalculations = Record<PaymentMethod, CustomerCalculation>;
+
 export type CustomerRecord = {
   id: string;
   ownerId: string;
   name: string;
   domisili: string;
-  metodePembayaran: PaymentMethod;
   ongkir: number;
   diskonKirim: number;
   selisihKirim: number;
-  adminTotal: number;
-  ppnTotal: number;
-  adminPpnTotal: number;
-  packages: PackageResult[];
+  calculations: CustomerCalculations;
   createdAt: Date;
 };
 

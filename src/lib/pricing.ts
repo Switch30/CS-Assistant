@@ -24,7 +24,7 @@ export const packageList: PackageConfig[] = [
     potonganCOD: 5000,
     potonganTransfer: 5000,
     adminPpnCOD: true,
-    adminPpnTransfer: true,
+    adminPpnTransfer: false,
     labelTambahan: ""
   },
   {
@@ -119,61 +119,53 @@ export function buildDetailText(params: {
 }) {
   const selisihKirim = params.ongkir - params.diskonKirim;
   const detailPaketText = params.packages.map((paket) => {
-    const statusAdmin = paket.adminFinal > 0 || paket.ppnFinal > 0 ? "YA" : "TIDAK";
+    const hasAdminPpn = paket.adminFinal > 0 || paket.ppnFinal > 0;
     const statusPotongan = paket.potongan > 0 ? formatRupiah(paket.potongan) : "Tidak ada potongan";
-
+    const adminPpnText = hasAdminPpn
+      ? `
+Admin          : ${formatRupiah(paket.adminFinal)}
+PPN            : ${formatRupiah(paket.ppnFinal)}`
+      : "";
+    const rumusAdminPpnText = hasAdminPpn
+      ? ` + ${formatRupiah(paket.adminFinal)} + ${formatRupiah(paket.ppnFinal)}`
+      : "";
     return `${paket.nama} - ${paket.isi} box Ettagrow
---------------------------------
-Harga dasar              : ${formatRupiah(paket.hargaDasar)}
-Ongkir Akhir             : ${formatRupiah(selisihKirim)}
-Potongan paket           : ${statusPotongan}
+Harga jadi  : ${formatRupiah(paket.totalFinal)}
+Harga coret : ${formatRupiah(paket.hargaCoret)}
 
-Rumus total awal:
-${formatRupiah(paket.hargaDasar)} + ${formatRupiah(selisihKirim)} - ${formatRupiah(paket.potongan)}
-= ${formatRupiah(paket.totalAwal)}
-
-Admin + PPN              : ${statusAdmin}
-Admin dibulatkan         : ${formatRupiah(paket.adminFinal)}
-PPN dibulatkan           : ${formatRupiah(paket.ppnFinal)}
-
-Rumus total final:
-${formatRupiah(paket.totalAwal)} + ${formatRupiah(paket.adminFinal)} + ${formatRupiah(paket.ppnFinal)}
-= ${formatRupiah(paket.totalFinal)}
-
-Harga coret              : ${formatRupiah(paket.hargaCoret)}
-Harga jadi               : ${formatRupiah(paket.totalFinal)}`;
+Harga dasar    : ${formatRupiah(paket.hargaDasar)}
+Ongkir Akhir   : ${formatRupiah(selisihKirim)}
+Potongan paket : ${statusPotongan}${adminPpnText}
+Rumus          : ${formatRupiah(paket.hargaDasar)} + ${formatRupiah(selisihKirim)} - ${formatRupiah(paket.potongan)}${rumusAdminPpnText}
+= ${formatRupiah(paket.totalFinal)}`;
   }).join("\n\n");
 
-  return `DETAIL PERHITUNGAN
-==============================
+  return `DETAIL PERHITUNGAN ${params.metodePembayaran}
 
-Metode pembayaran        : ${params.metodePembayaran}
-Nama customer            : ${params.customerName}
-Domisili                 : ${params.domisili}
-Ongkos kirim             : ${formatRupiah(params.ongkir)}
-Diskon kirim             : ${formatRupiah(params.diskonKirim)}
-Ongkir Akhir             : ${formatRupiah(selisihKirim)}
-
-==============================
+Customer      : ${params.customerName}
+Domisili      : ${params.domisili}
+Ongkir        : ${formatRupiah(params.ongkir)}
+Diskon        : ${formatRupiah(params.diskonKirim)}
+Ongkir Akhir  : ${formatRupiah(selisihKirim)}
 
 ${detailPaketText}`;
 }
 
 export function buildTemplateText(packages: PackageResult[]) {
   const templatePaketText = packages.map((paket) => {
-    const suffix = paket.isi === 2 ? " Best Seller" : paket.isi === 3 ? " Rekomendasi" : "";
+    const suffix = paket.isi === 2 ? "✨ Best Seller" : paket.isi === 3 ? "✨ Rekomendasi" : "";
     const emoji = getTemplateEmoji(paket.emoji);
 
     if (paket.isi === 1) {
       return `${emoji} ${paket.nama} Isi : ${paket.isi} box Ettagrow
-PROMO: ~${formatTanpaRp(paket.hargaCoret)}~ JADI ${formatTanpaRp(paket.totalFinal)}${suffix}`;
+*PROMO: ~${formatTanpaRp(paket.hargaCoret)}~ JADI ${formatTanpaRp(paket.totalFinal)}*${suffix}`;
     }
 
     return `${emoji} ${paket.nama} Isi : ${paket.isi} box Ettagrow
-PROMO : ~${formatRupiah(paket.hargaCoret)}~ JADI ${formatRupiah(paket.totalFinal)}${suffix}`;
+*PROMO : ~${formatRupiah(paket.hargaCoret)}~ JADI ${formatRupiah(paket.totalFinal)}*${suffix}`;
   }).join("\n\n");
 
-  return `PROMO PAYDAY ((TERBATAS)) - Disc Up to 30% untuk pemesanan HARI INI saja
+  return `*PROMO PAYDAY ((TERBATAS)) - Disc Up to 30%* untuk pemesanan HARI INI saja
 
 ${templatePaketText}`;
 }

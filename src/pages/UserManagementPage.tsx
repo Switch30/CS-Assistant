@@ -49,12 +49,12 @@ export function UserManagementPage() {
 
   async function handleDeleteUser(user: ManagedUser) {
     if (user.uid === account?.uid) {
-      setError("Admin tidak bisa menghapus akun yang sedang dipakai.");
+      setError("Admin tidak bisa menonaktifkan akun yang sedang dipakai.");
       return;
     }
 
     if (user.role === "admin") {
-      setError("Akun admin tidak bisa dihapus dari halaman ini.");
+      setError("Akun admin tidak bisa dinonaktifkan dari halaman ini.");
       return;
     }
 
@@ -74,7 +74,7 @@ export function UserManagementPage() {
       setUsers((currentUsers) => currentUsers.filter((currentUser) => currentUser.uid !== user.uid));
     } catch (deleteError) {
       console.error(deleteError);
-      setError("User gagal dinonaktifkan. Pastikan akun admin punya akses.");
+      setError("User belum berhasil dinonaktifkan. Pastikan akun admin punya akses.");
     } finally {
       setDeletingUserId("");
     }
@@ -138,7 +138,7 @@ export function UserManagementPage() {
                         ) : (
                           <Trash2 size={16} />
                         )}
-                        Hapus
+                        Nonaktifkan
                       </button>
                     </td>
                   </tr>

@@ -1,8 +1,8 @@
-import { Loader2, Search } from "lucide-react";
+import { Loader2, RotateCcw, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
-import { formatDateOnly, formatDateTime, formatRupiah } from "../lib/format";
+import { formatDateOnly, formatDateTime } from "../lib/format";
 import { listCustomers } from "../services/customers";
 import type { CustomerRecord } from "../types";
 
@@ -50,6 +50,7 @@ export function CustomerListPage() {
 
   const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / rowsPerPage));
   const safePage = Math.min(currentPage, totalPages);
+  const hasActiveFilter = Boolean(search || dateFilter);
   const paginatedCustomers = filteredCustomers.slice(
     (safePage - 1) * rowsPerPage,
     safePage * rowsPerPage
@@ -57,6 +58,12 @@ export function CustomerListPage() {
 
   function resetPagination() {
     setCurrentPage(1);
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setDateFilter("");
+    resetPagination();
   }
 
   return (
@@ -93,6 +100,17 @@ export function CustomerListPage() {
               }}
             />
           </label>
+
+          {hasActiveFilter && (
+            <button
+              className="ghost-button compact filter-clear-button"
+              type="button"
+              onClick={clearFilters}
+            >
+              <RotateCcw size={18} />
+              Reset Filter
+            </button>
+          )}
         </div>
       </section>
 
@@ -124,7 +142,6 @@ export function CustomerListPage() {
                     <th>Nama Customer</th>
                     <th>Domisili</th>
                     <th>Tanggal</th>
-                    <th>Total Admin + PPN</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -138,7 +155,6 @@ export function CustomerListPage() {
                       </td>
                       <td data-label="Domisili">{customer.domisili}</td>
                       <td data-label="Tanggal">{formatDateTime(customer.createdAt)}</td>
-                      <td data-label="Total Admin + PPN">{formatRupiah(customer.adminPpnTotal)}</td>
                     </tr>
                   ))}
                 </tbody>
